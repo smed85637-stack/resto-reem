@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>نظام فواتير مطعم ومقهى أوبرا</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(245, 158, 11, 0.16), transparent 30%),
+        linear-gradient(135deg, #fff7ed, #f3f4f6);
+      min-height: 100vh;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+    }
+
+    .menu-btn {
+      transition: 0.2s ease;
+    }
+
+    .menu-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        padding: 0 !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      #invoice {
+        width: 100% !important;
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+
+      .print-hide {
+        display: none !important;
+      }
+
+      .print-border {
+        border: 2px solid #111827 !important;
+      }
+
+      .print-text-black {
+        color: #111827 !important;
+      }
+
+      table {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body class="p-4">
+
+  <header class="no-print max-w-7xl mx-auto mb-6">
+    <div class="card rounded-3xl shadow-lg border border-amber-200 p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-amber-900">نظام فواتير مطعم ومقهى أوبرا</h1>
+        <p class="text-gray-600 mt-1">اختر الأصناف، أدخل بيانات الزبون، ثم اطبع أو أرسل الطلب عبر الواتساب.</p>
+      </div>
+      <div class="bg-amber-100 text-amber-900 px-5 py-3 rounded-2xl font-bold">
+        واتساب الطلبات: 37929637
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- MENU -->
+    <section class="no-print card rounded-3xl shadow-lg border border-amber-200 p-5">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h2 class="text-2xl font-extrabold text-amber-900">قائمة الطعام</h2>
+        <input
+          id="searchInput"
+          oninput="renderMenu()"
+          type="text"
+          placeholder="بحث عن صنف..."
+          class="w-44 md:w-64 border border-amber-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+        />
+      </div>
+
+      <div id="menu-container" class="space-y-6"></div>
+    </section>
+
+    <!-- INVOICE -->
+    <section id="invoice" class="card rounded-3xl shadow-xl border-2 border-amber-300 p-6">
+      <div class="text-center border-b-2 border-amber-200 pb-4">
+        <div class="mx-auto w-16 h-16 rounded-full bg-amber-700 text-white flex items-center justify-center text-3xl font-extrabold mb-2">
+          O
+        </div>
+        <h2 class="text-3xl font-extrabold text-amber-950 print-text-black">فاتورة مطعم أوبرا</h2>
+        <p class="text-gray-600 mt-1">مطعم ومقهى أوبرا</p>
+
+        <div class="mt-3 p-3 bg-amber-50 rounded-2xl print-border">
+          <p class="text-sm font-bold text-amber-800 print-text-black">للطلب عبر الواتساب</p>
+          <a href="https://wa.me/22237929637" target="_blank" class="text-2xl font-extrabold text-amber-950 hover:underline">
+            37929637
+          </a>
+        </div>
+      </div>
+
+      <!-- Customer Data -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5 no-print">
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">اسم الزبون</label>
+          <input id="customerName" type="text" placeholder="مثال: أحمد" class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">رقم الزبون</label>
+          <input id="customerPhone" type="tel" placeholder="مثال: 37929637" class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">نوع الطلب</label>
+          <select id="orderType" class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <option>طلب داخل المطعم</option>
+            <option>طلب خارجي</option>
+            <option>توصيل</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">ملاحظة</label>
+          <input id="orderNote" type="text" placeholder="مثال: بدون سكر / توصيل سريع" class="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+        </div>
+      </div>
+
+      <div class="mt-5 text-sm text-gray-700">
+        <div class="flex justify-between gap-3">
+          <p>رقم الفاتورة: <span id="invoiceNumber" class="font-bold"></span></p>
+          <p>التاريخ: <span id="invoiceDate" class="font-bold"></span></p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto mt-5">
+        <table class="w-full text-sm md:text-base">
+          <thead>
+            <tr class="bg-amber-100 text-amber-950">
+              <th class="text-right p-3 rounded-r-xl">الصنف</th>
+              <th class="text-center p-3">السعر</th>
+              <th class="text-center p-3">الكمية</th>
+              <th class="text-center p-3">المجموع</th>
+              <th class="text-center p-3 rounded-l-xl print-hide">حذف</th>
+            </tr>
+          </thead>
+          <tbody id="bill-items"></tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="text-center py-10 text-gray-500">
+        لم يتم اختيار أي صنف بعد.
+      </div>
+
+      <div class="mt-6 border-t-2 border-amber-200 pt-4 space-y-2">
+        <div class="flex justify-between text-lg">
+          <span class="font-bold text-gray-700">عدد الأصناف:</span>
+          <span id="itemsCount" class="font-extrabold">0</span>
+        </div>
+        <div class="flex justify-between text-2xl">
+          <span class="font-extrabold text-amber-950 print-text-black">الإجمالي:</span>
+          <span class="font-extrabold text-amber-950 print-text-black"><span id="total-price">0</span> MRU</span>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-gray-200 text-center text-sm text-gray-700">
+        <p class="font-extrabold text-gray-900 mb-3">خيارات السداد</p>
+        <div class="grid grid-cols-2 gap-3">
+          <p class="bg-gray-100 p-3 rounded-xl print-border">Bankily: 37929637</p>
+          <p class="bg-gray-100 p-3 rounded-xl print-border">BIM Bank: متوفر</p>
+        </div>
+      </div>
+
+      <div class="no-print grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+        <button onclick="sendWhatsApp()" class="w-full bg-green-600 text-white p-3 rounded-xl font-extrabold hover:bg-green-700">
+          إرسال واتساب
+        </button>
+        <button onclick="window.print()" class="w-full bg-amber-700 text-white p-3 rounded-xl font-extrabold hover:bg-amber-800">
+          طباعة الفاتورة
+        </button>
+        <button onclick="clearBill()" class="w-full bg-red-600 text-white p-3 rounded-xl font-extrabold hover:bg-red-700">
+          تفريغ الفاتورة
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const restaurantWhatsApp = "22237929637";
+
+    const menu = [
+      {
+        category: "الأطباق الرئيسية",
+        items: [
+          { name: "مـارو والحوت", price: 60 },
+          { name: "مـارو بسمتي", price: 50 },
+          { name: "سباكتي", price: 60 },
+          { name: "الخالص", price: 50 },
+          { name: "مافه مع مـارو بسمتي", price: 0 }
+        ]
+      },
+      {
+        category: "المشروبات الباردة",
+        items: [
+          { name: "عصير بنان", price: 50 },
+          { name: "عصير ميلك شاك", price: 50 },
+          { name: "عصير التفاح", price: 50 },
+          { name: "عصير البرتقال", price: 80 },
+          { name: "عصير الأفوكادو", price: 100 },
+          { name: "عصير كوكتيل", price: 100 },
+          { name: "صلات دفروي", price: 100 },
+          { name: "عصير المانجو", price: 60 },
+          { name: "كأس عصير بيصام", price: 20 },
+          { name: "كأس عصير تجمخت", price: 20 }
+        ]
+      },
+      {
+        category: "المشروبات الساخنة",
+        items: [
+          { name: "قهوة سوداء", price: 50 },
+          { name: "قهوة بالحليب", price: 50 },
+          { name: "ليبتون عادي", price: 30 },
+          { name: "ليبتون مع الحليب", price: 50 },
+          { name: "ليبتون مع الليمون", price: 50 },
+          { name: "قهوة تينو", price: 60 }
+        ]
+      }
+    ];
+
+    let bill = [];
+
+    function init() {
+      document.getElementById("invoiceNumber").innerText = "OP-" + Date.now().toString().slice(-6);
+      document.getElementById("invoiceDate").innerText = new Date().toLocaleString("ar-MR");
+      renderMenu();
+      updateBillUI();
+    }
+
+    function renderMenu() {
+      const search = document.getElementById("searchInput").value.trim().toLowerCase();
+      const container = document.getElementById("menu-container");
+      container.innerHTML = "";
+
+      menu.forEach(section => {
+        const filteredItems = section.items.filter(item => item.name.toLowerCase().includes(search));
+        if (filteredItems.length === 0) return;
+
+        const sectionDiv = document.createElement("div");
+        sectionDiv.innerHTML = `
+          <h3 class="text-xl font-extrabold text-amber-700 mb-3">${section.category}</h3>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            ${filteredItems.map(item => `
+              <button
+                onclick="addToBill('${escapeHtml(item.name)}', ${item.price})"
+                class="menu-btn p-3 bg-white rounded-2xl shadow border border-gray-100 hover:bg-amber-50 text-sm text-right"
+              >
+                <span class="font-extrabold text-gray-900">${item.name}</span>
+                <br>
+                <span class="text-gray-500">${item.price > 0 ? item.price + " MRU" : "السعر لاحقاً"}</span>
+              </button>
+            `).join("")}
+          </div>
+        `;
+        container.appendChild(sectionDiv);
+      });
+    }
+
+    function addToBill(name, price) {
+      const existing = bill.find(item => item.name === name && item.price === price);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        bill.push({ name, price, qty: 1 });
+      }
+      updateBillUI();
+    }
+
+    function removeFromBill(index) {
+      bill.splice(index, 1);
+      updateBillUI();
+    }
+
+    function changeQty(index, value) {
+      const qty = parseInt(value, 10);
+      if (isNaN(qty) || qty < 1) {
+        bill[index].qty = 1;
+      } else {
+        bill[index].qty = qty;
+      }
+      updateBillUI();
+    }
+
+    function updatePrice(index, value) {
+      const price = parseFloat(value);
+      bill[index].price = isNaN(price) || price < 0 ? 0 : price;
+      updateBillUI();
+    }
+
+    function updateBillUI() {
+      const container = document.getElementById("bill-items");
+      const totalElement = document.getElementById("total-price");
+      const itemsCount = document.getElementById("itemsCount");
+      const emptyState = document.getElementById("emptyState");
+
+      container.innerHTML = "";
+
+      let total = 0;
+      let count = 0;
+
+      bill.forEach((item, index) => {
+        const lineTotal = item.price * item.qty;
+        total += lineTotal;
+        count += item.qty;
+
+        container.innerHTML += `
+          <tr class="border-b border-gray-100">
+            <td class="p-3 font-bold">${item.name}</td>
+            <td class="p-3 text-center">
+              <input
+                type="number"
+                min="0"
+                value="${item.price}"
+                onchange="updatePrice(${index}, this.value)"
+                class="no-print w-20 text-center border rounded-lg p-1"
+              />
+              <span class="hidden print:inline">${item.price}</span>
+            </td>
+            <td class="p-3 text-center">
+              <input
+                type="number"
+                min="1"
+                value="${item.qty}"
+                onchange="changeQty(${index}, this.value)"
+                class="no-print w-16 text-center border rounded-lg p-1"
+              />
+              <span class="hidden print:inline">${item.qty}</span>
+            </td>
+            <td class="p-3 text-center font-extrabold">${lineTotal}</td>
+            <td class="p-3 text-center print-hide">
+              <button onclick="removeFromBill(${index})" class="bg-red-50 text-red-600 w-8 h-8 rounded-full hover:bg-red-100 font-extrabold">
+                ×
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      totalElement.innerText = total;
+      itemsCount.innerText = count;
+      emptyState.style.display = bill.length === 0 ? "block" : "none";
+    }
+
+    function clearBill() {
+      if (!confirm("هل تريد تفريغ الفاتورة؟")) return;
+      bill = [];
+      updateBillUI();
+    }
+
+    function sendWhatsApp() {
+      if (bill.length === 0) {
+        alert("الرجاء اختيار صنف واحد على الأقل.");
+        return;
+      }
+
+      const customerName = document.getElementById("customerName").value.trim() || "غير محدد";
+      const customerPhone = document.getElementById("customerPhone").value.trim() || "غير محدد";
+      const orderType = document.getElementById("orderType").value;
+      const orderNote = document.getElementById("orderNote").value.trim() || "لا توجد";
+      const invoiceNumber = document.getElementById("invoiceNumber").innerText;
+      const date = document.getElementById("invoiceDate").innerText;
+
+      let total = 0;
+      let lines = bill.map((item, i) => {
+        const lineTotal = item.price * item.qty;
+        total += lineTotal;
+        return `${i + 1}- ${item.name} | السعر: ${item.price} | الكمية: ${item.qty} | المجموع: ${lineTotal} MRU`;
+      }).join("\n");
+
+      const message =
+`فاتورة مطعم أوبرا
+رقم الفاتورة: ${invoiceNumber}
+التاريخ: ${date}
+
+بيانات الزبون:
+الاسم: ${customerName}
+الهاتف: ${customerPhone}
+نوع الطلب: ${orderType}
+ملاحظة: ${orderNote}
+
+الطلبات:
+${lines}
+
+الإجمالي: ${total} MRU
+
+الدفع:
+Bankily: 37929637
+BIM Bank: متوفر`;
+
+      const url = `https://wa.me/${restaurantWhatsApp}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank");
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/'/g, "\\'");
+    }
+
+    init();
+  </script>
+</body>
+</html>
